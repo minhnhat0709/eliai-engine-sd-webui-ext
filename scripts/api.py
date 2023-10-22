@@ -75,8 +75,8 @@ def s3Storage_base64_upload(base64_image: str, task_id: str, index: int):
 
     return server_domain + object_key
 
-url: str = os.environ.get('SUPABASE_ENDPOINT')
-key: str = os.environ.get('SUPABASE_KEY')
+url: str = os.environ.get('SUPABASE_ENDPOINT') or "http://localhost:54321"
+key: str = os.environ.get('SUPABASE_KEY') or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
 supabase: Client = create_client(url, key)
 
 def image_uploading(images: List[str], task_id: str, user_id: str):
@@ -121,7 +121,14 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
 
         try:
           result = api.text2imgapi(txt2imgreq)
-          images = result.images
+
+          controlnet_args = txt2imgreq.alwayson_scripts.get('controlnet', {}).get('args', {})
+          controlnet_lenght = len(controlnet_args)
+
+          if controlnet_lenght & controlnet_lenght > 0 :
+            images = result.images[:-controlnet_lenght]
+          else:
+            images = result.images
 
           # background_tasks.add_task(image_uploading, images, task_id, user_id)
 
@@ -147,7 +154,15 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
 
         try:
           result = api.img2imgapi(txt2imgreq)
-          images = result.images
+
+          controlnet_args = txt2imgreq.alwayson_scripts.get('controlnet', {}).get('args', {})
+          controlnet_lenght = len(controlnet_args)
+
+          if controlnet_lenght & controlnet_lenght > 0 :
+            images = result.images[:-controlnet_lenght]
+          else:
+            images = result.images
+
 
           # Create a new thread to run the background task
           background_thread = threading.Thread(target=image_uploading, args=(images, task_id, user_id))
@@ -172,6 +187,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
         try:
           result = api.extras_single_image_api(extraReq)
           images = [result.image]
+          
 
           # Create a new thread to run the background task
           background_thread = threading.Thread(target=image_uploading, args=(images, task_id, user_id))
