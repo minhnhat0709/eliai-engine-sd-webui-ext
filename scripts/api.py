@@ -118,11 +118,10 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
         # task_id = txt2imgreq.task_id
 
         print(f"Tassk ID: {task_id}")   
-
         try:
           result = api.text2imgapi(txt2imgreq)
 
-          controlnet_args = txt2imgreq.alwayson_scripts.get('controlnet', {}).get('args', {})
+          controlnet_args = txt2imgreq.alwayson_scripts.get('controlNet', {}).get('args', {})
           controlnet_lenght = len(controlnet_args)
 
           if controlnet_lenght & controlnet_lenght > 0 :
