@@ -11,3 +11,5 @@ if not launch.is_installed("boto3"):
 
 if not launch.is_installed("onnxruntime"):
     launch.run_pip("install onnxruntime", "requirements for EliAI-Engine")
+if not launch.is_installed("onnx"):
+    launch.run_pip("install onnx", "requirements for EliAI-Engine")
