@@ -11,6 +11,8 @@ import boto3
 import numpy as np
 from fastapi import FastAPI, Body, BackgroundTasks
 from fastapi.exceptions import HTTPException
+from fastapi.responses import Response, JSONResponse
+from fastapi.concurrency import run_in_threadpool
 from PIL import Image
 
 import gradio as gr
@@ -22,8 +24,8 @@ from modules import scripts
 from modules.api.api import Api
 from modules.call_queue import queue_lock
 
-from scripts.models import EliAIEngineTxt2ImgProcessingAPI
-
+from scripts.models import EliAIEngineSAMPredictorAPI, EliAIEngineTxt2ImgProcessingAPI
+from sam import image_predictions
 
 import base64
 import io
@@ -57,8 +59,8 @@ def encode_np_to_base64(image):
 
 
 s3client = boto3.client('s3', endpoint_url='https://hn.ss.bfcplatform.vn',
-    aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID'),
-    aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY'))
+    aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID') or "1XHPESY0IXGEMWYKN6PL",
+    aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY') or "Kl8vL45TnD9KmVBcn2siOj9tno6rOimIxZlITSr1")
 bucket_name = "eliai-server"
 server_domain = "https://eliai-server.hn.ss.bfcplatform.vn/"
 
@@ -79,7 +81,7 @@ url: str = os.environ.get('SUPABASE_ENDPOINT') or "http://localhost:54321"
 key: str = os.environ.get('SUPABASE_KEY') or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
 supabase: Client = create_client(url, key)
 
-def image_uploading(images: List[str], task_id: str, user_id: str):
+def image_uploading(images: List[str], task_id:   str, user_id: str):
     # time.sleep(10)
     result = []
     for index, image in enumerate(images):
@@ -112,6 +114,20 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
     api = Api(app, queue_lock)
 
     
+    @app.post("/eliai_engine/img_sam_prediction")
+    def sam_prediction(samreq: EliAIEngineSAMPredictorAPI, user_id: str):
+      image_base64 = samreq.image_base64 or ""
+
+      print(f"START")
+      # await asyncio.sleep(40)
+      result = image_predictions(image_base64)
+      # result = io.BytesIO()
+      bytes = result.getvalue()
+      result.close()
+
+      print(f"END")
+      return Response(bytes)
+       
 
     @app.post("/eliai_engine/txt2img", status_code=204)
     def text2imgapi(txt2imgreq: StableDiffusionTxt2ImgProcessingAPI, task_id: str, user_id: str):

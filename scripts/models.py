@@ -1,5 +1,6 @@
 from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
 from modules.api.models import *
+from pydantic import BaseModel
 
 EliAIEngineTxt2ImgProcessingAPI = PydanticModelGenerator(
     "EliAIEngineTxt2ImgProcessingAPI",
@@ -14,3 +15,6 @@ EliAIEngineTxt2ImgProcessingAPI = PydanticModelGenerator(
         {"key": "alwayson_scripts", "type": dict, "default": {}},
     ]
 ).generate_model()
+
+class EliAIEngineSAMPredictorAPI(BaseModel):
+  image_base64: str
