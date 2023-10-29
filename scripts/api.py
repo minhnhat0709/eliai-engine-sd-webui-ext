@@ -8,7 +8,7 @@ from typing import List
 from supabase import Client, create_client
 import boto3
 
-from ..automapper import mapper
+from automapper import mapper
 
 import numpy as np
 from fastapi import FastAPI, Body, BackgroundTasks
