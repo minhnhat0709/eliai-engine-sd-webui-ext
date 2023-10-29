@@ -14,5 +14,5 @@ if not launch.is_installed("onnxruntime"):
 if not launch.is_installed("onnx"):
     launch.run_pip("install onnx", "requirements for EliAI-Engine")
 
-if not launch.is_installed("py-automapper"):
-    launch.run_pip("install py-automapper", "requirements for EliAI-Engine")
+# if not launch.is_installed("py-automapper"):
+#     launch.run_pip("install py-automapper", "requirements for EliAI-Engine")
