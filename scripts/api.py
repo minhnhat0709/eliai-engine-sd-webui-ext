@@ -8,6 +8,8 @@ from typing import List
 from supabase import Client, create_client
 import boto3
 
+from automapper import mapper
+
 import numpy as np
 from fastapi import FastAPI, Body, BackgroundTasks
 from fastapi.exceptions import HTTPException
@@ -24,7 +26,9 @@ from modules import scripts
 from modules.api.api import Api
 from modules.call_queue import queue_lock
 
-from scripts.models import EliAIEngineSAMPredictorAPI, EliAIEngineTxt2ImgProcessingAPI
+from scripts.models import EliAIEngineSAMPredictorAPI, EliAIEngineTxt2ImgProcessingAPI, EliAIEngineImg2ImgProcessingAPI
+from outside_lora_process import load_loras
+
 from sam import image_predictions
 
 import base64
@@ -107,7 +111,6 @@ def image_uploading(images: List[str], task_id:   str, user_id: str):
             "finished_at": datetime.datetime.utcnow().isoformat()
         }).eq("task_id", task_id).execute()
     
- 
 
 
 def eliai_engine_api(_: gr.Blocks, app: FastAPI):
@@ -130,14 +133,21 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
        
 
     @app.post("/eliai_engine/txt2img", status_code=204)
-    def text2imgapi(txt2imgreq: StableDiffusionTxt2ImgProcessingAPI, task_id: str, user_id: str):
+    def text2imgapi(txt2imgreq: EliAIEngineTxt2ImgProcessingAPI, task_id: str, user_id: str):
         # task_id = txt2imgreq.task_id
+        
+        loras = txt2imgreq.loras
+        print(f"Loras: {loras}")
+        
 
         print(f"Tassk ID: {task_id}")   
         try:
-          result = api.text2imgapi(txt2imgreq)
+          load_loras(loras)
+          req = mapper.to(StableDiffusionTxt2ImgProcessingAPI).map(txt2imgreq)
+          # return
+          result = api.text2imgapi(req)
 
-          controlnet_args = txt2imgreq.alwayson_scripts.get('controlNet', {}).get('args', {})
+          controlnet_args = req.alwayson_scripts.get('controlNet', {}).get('args', {})
           controlnet_lenght = len(controlnet_args)
 
           if controlnet_lenght & controlnet_lenght > 0 :
@@ -162,15 +172,18 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
         return
     
     @app.post("/eliai_engine/img2img", status_code=204)
-    def text2imgapi(txt2imgreq: StableDiffusionImg2ImgProcessingAPI, task_id: str, user_id: str, background_tasks: BackgroundTasks):
+    def text2imgapi(txt2imgreq: EliAIEngineImg2ImgProcessingAPI, task_id: str, user_id: str, background_tasks: BackgroundTasks):
         # task_id = txt2imgreq.task_id
-
+        loras = txt2imgreq.loras
         print(f"Tassk ID: {task_id}")   
 
         try:
-          result = api.img2imgapi(txt2imgreq)
+          load_loras(loras)
+          req = mapper.to(StableDiffusionImg2ImgProcessingAPI).map(txt2imgreq)
 
-          controlnet_args = txt2imgreq.alwayson_scripts.get('controlnet', {}).get('args', {})
+          result = api.img2imgapi(req)
+
+          controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', {})
           controlnet_lenght = len(controlnet_args)
 
           if controlnet_lenght & controlnet_lenght > 0 :
