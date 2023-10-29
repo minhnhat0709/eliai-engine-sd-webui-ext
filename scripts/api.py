@@ -137,14 +137,12 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
         # task_id = txt2imgreq.task_id
         
         loras = txt2imgreq.loras
-        print(f"Loras: {loras}")
         
 
         print(f"Tassk ID: {task_id}")   
         try:
           load_loras(loras)
           req = mapper.to(StableDiffusionTxt2ImgProcessingAPI).map(txt2imgreq)
-          print(f"request: {req}")
           # return
           result = api.text2imgapi(req)
 
@@ -162,7 +160,8 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           background_thread = threading.Thread(target=image_uploading, args=(images, task_id, user_id))
           background_thread.start()
 
-        except:
+        except Exception as e:
+          print(e)
           supabase.table("Tasks").update({
               "status": "failed",
               "finished_at": datetime.datetime.utcnow().isoformat()

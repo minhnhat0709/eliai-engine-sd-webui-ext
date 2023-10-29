@@ -17,8 +17,6 @@ def download_file_with_storage_management(url, file_name, storage_folder, max_me
     print("Started")
     json_file_path = os.path.join(storage_folder, "metadata.json")
     file_path = os.path.join(storage_folder, file_name)
-
-    print(f"File path: {file_path}")
     
     # Load existing metadata or create an empty dictionary if it doesn't exist
     metadata = {}
@@ -26,7 +24,6 @@ def download_file_with_storage_management(url, file_name, storage_folder, max_me
         with open(json_file_path, 'r') as json_file:
             metadata = json.load(json_file)
     
-    print(f"metadata {metadata}")
     # Check if the URL already exists in the metadata
     if url in metadata:
         # Update the last usage datetime
@@ -76,15 +73,12 @@ def calculate_folder_size(folder):
 # Example usage
 url = "https://example.com/sample_file.pdf"
 storage_folder = shared.cmd_opts.lora_dir or os.path.join(paths.models_path, 'Lora')
-max_memory_capacity = 1024 * 1024 * 1024 * (os.environ.get('MAX_MEMORY_CAPACITY') or 10) # 10 GB
+max_memory_capacity = 1024 * 1024 * 1024 * (float(os.environ.get('MAX_MEMORY_CAPACITY')) or 10) # 10 GB
 # max_memory_capacity = 1024 * 1024 * 500  # 100 MB
 
 # download_file_with_storage_management(url, storage_folder, max_memory_capacity)
 
 def load_loras(loras):
-  print(f"storage_folder: {storage_folder}")
   for lora in loras:
-      print(f"lora: {lora}")
       if lora["downloadURL"] != None:
-        print("Downloading")
         download_file_with_storage_management(lora["downloadURL"], lora["name"], storage_folder, max_memory_capacity)
