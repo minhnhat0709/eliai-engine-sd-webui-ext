@@ -8,7 +8,7 @@ from typing import List
 from supabase import Client, create_client
 import boto3
 
-from automapper import mapper
+from ..automapper import mapper
 
 import numpy as np
 from fastapi import FastAPI, Body, BackgroundTasks
@@ -144,6 +144,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
         try:
           load_loras(loras)
           req = mapper.to(StableDiffusionTxt2ImgProcessingAPI).map(txt2imgreq)
+          print(f"request: {req}")
           # return
           result = api.text2imgapi(req)
 
