@@ -183,7 +183,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
 
           result = api.img2imgapi(req)
 
-          controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', {})
+          controlnet_args = req.alwayson_scripts.get('controlNet', {}).get('args', {})
           controlnet_lenght = len(controlnet_args)
 
           if controlnet_lenght & controlnet_lenght > 0 :
