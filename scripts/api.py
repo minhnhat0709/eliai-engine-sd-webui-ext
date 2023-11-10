@@ -156,8 +156,8 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
             images = result.images
 
 
-          infor = json.loads(result.infor)
-          seed = infor.get('seed')
+          info = json.loads(result.info)
+          seed = info.get('seed')
           # background_tasks.add_task(image_uploading, images, task_id, user_id)
 
           # Create a new thread to run the background task
@@ -195,8 +195,8 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           else:
             images = result.images
 
-          infor = json.loads(result.infor)
-          seed = infor.get('seed')
+          info = json.loads(result.info)
+          seed = info.get('seed')
           # Create a new thread to run the background task
           background_thread = threading.Thread(target=image_uploading, args=(images, seed, task_id, user_id))
           background_thread.start()
