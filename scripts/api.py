@@ -33,6 +33,7 @@ from sam import image_predictions
 
 import base64
 import io
+import json
 
 
 def save_base64_to_file(base64String, filename):
@@ -85,7 +86,7 @@ url: str = os.environ.get('SUPABASE_ENDPOINT') or "http://localhost:54321"
 key: str = os.environ.get('SUPABASE_KEY') or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
 supabase: Client = create_client(url, key)
 
-def image_uploading(images: List[str], task_id:   str, user_id: str):
+def image_uploading(images: List[str], seed:int, task_id:   str, user_id: str):
     # time.sleep(10)
     result = []
     for index, image in enumerate(images):
@@ -94,7 +95,7 @@ def image_uploading(images: List[str], task_id:   str, user_id: str):
         supabase.table("Images").insert({
             "image_url": image_url,
             "is_shared": True,
-            "seed": 1,
+            "seed": seed + index,
             "task_id": task_id,
             "user_id": user_id
         }).execute()
@@ -154,10 +155,13 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           else:
             images = result.images
 
+
+          infor = json.loads(result.infor)
+          seed = infor.get('seed')
           # background_tasks.add_task(image_uploading, images, task_id, user_id)
 
           # Create a new thread to run the background task
-          background_thread = threading.Thread(target=image_uploading, args=(images, task_id, user_id))
+          background_thread = threading.Thread(target=image_uploading, args=(images, seed, task_id, user_id))
           background_thread.start()
 
         except Exception as e:
@@ -191,9 +195,10 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           else:
             images = result.images
 
-
+          infor = json.loads(result.infor)
+          seed = infor.get('seed')
           # Create a new thread to run the background task
-          background_thread = threading.Thread(target=image_uploading, args=(images, task_id, user_id))
+          background_thread = threading.Thread(target=image_uploading, args=(images, seed, task_id, user_id))
           background_thread.start()
 
         except:
