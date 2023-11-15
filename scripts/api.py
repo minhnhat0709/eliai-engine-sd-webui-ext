@@ -223,7 +223,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           
 
           # Create a new thread to run the background task
-          background_thread = threading.Thread(target=image_uploading, args=(images, task_id, user_id))
+          background_thread = threading.Thread(target=image_uploading, args=(images,1 , task_id, user_id))
           background_thread.start()
 
         except:
