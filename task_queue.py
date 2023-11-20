@@ -4,6 +4,7 @@ import threading
 import time
 import redis
 from modules.api.models import *
+from modules.shared_cmd_options import cmd_opts
 from automapper import mapper
 
 import requests
@@ -53,20 +54,20 @@ def YourLedRoutine(text2imgapi):
                     if mask:
                         task['mask'] = downloadImage(mask)
                     # req = mapper.to(StableDiffusionImg2ImgProcessingAPI).map(task)
-                    requests.post('http://127.0.0.1:1227/eliai_engine/img2img', json=task)
+                    requests.post(f'http://127.0.0.1:{cmd_opts.port}/eliai_engine/img2img', json=task)
                 else:
                     # req = mapper.to(StableDiffusionTxt2ImgProcessingAPI).map(task)
                     # print(f"req: {req.json()}")
                     # print(f"task: {task}")
                     # task = {'batch_count': 1, 'cfg_scale': 9, 'height': 768, 'negative_prompt': 'Disfigured, cartoon, blurry', 'prompt': 'a villa, sunlight, blue sky, relax, soft light, tree, flower\n8k, high resolution', 'sampler': 'Euler a', 'seed': 1, 'steps': 35, 'width': 960, 'alwayson_scripts': {}, 'task_id': 'c603ff98-47f2-4a30-8750-4b5fa4cf6a11', 'user_id': 8}
                     # text2imgapi(task)
-                    requests.post('http://127.0.0.1:1227/eliai_engine/txt2img', json=task)
+                    requests.post(f'http://127.0.0.1:{cmd_opts.port}/eliai_engine/txt2img', json=task)
 
             else:
                 if task['image']:
                     task['image'] = downloadImage(task['image'])
                 # req = mapper.to(StableDiffusionImg2ImgProcessingAPI).map(task)
-                requests.post('http://127.0.0.1:1227/eliai_engine/extra-single-image', json=task)
+                requests.post(f'http://127.0.0.1:{cmd_opts.port}/eliai_engine/extra-single-image', json=task)
         except Exception as e:
             print(e)
             supabase.table("Tasks").update({
