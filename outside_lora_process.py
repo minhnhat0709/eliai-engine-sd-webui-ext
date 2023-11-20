@@ -73,12 +73,13 @@ def calculate_folder_size(folder):
 # Example usage
 url = "https://example.com/sample_file.pdf"
 storage_folder = shared.cmd_opts.lora_dir or os.path.join(paths.models_path, 'Lora')
-max_memory_capacity = 1024 * 1024 * 1024 * (float(os.environ.get('MAX_MEMORY_CAPACITY')) or 10) # 10 GB
+max_memory_capacity = 1024 * 1024 * 1024 * (float(os.environ.get('MAX_MEMORY_CAPACITY') or 10)) # 10 GB
 # max_memory_capacity = 1024 * 1024 * 500  # 100 MB
 
 # download_file_with_storage_management(url, storage_folder, max_memory_capacity)
 
 def load_loras(loras):
   for lora in loras:
-      if lora["downloadURL"] != None:
-        download_file_with_storage_management(lora["downloadURL"], lora["name"], storage_folder, max_memory_capacity)
+      print(f"lora: {lora}")
+      if lora.get('download_url', None) != None:
+        download_file_with_storage_management(lora["download_url"], lora["name"], storage_folder, max_memory_capacity)

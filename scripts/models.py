@@ -38,6 +38,9 @@ EliAIEngineImg2ImgProcessingAPI = PydanticModelGenerator(
     ]
 ).generate_model()
 
+class EliAIEngineExtraAPI(ExtrasSingleImageRequest):
+  user_id: str
+  task_id: str
 
 class EliAIEngineSAMPredictorAPI(BaseModel):
   image_base64: str
