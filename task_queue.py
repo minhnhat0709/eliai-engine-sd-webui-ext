@@ -18,14 +18,14 @@ def YourLedRoutine(text2imgapi):
     redis_uri = 'rediss://default:AVNS_p5SxXC8sjRJE8JkNqB9@task-queue-minhnhatdo0709-a715.a.aivencloud.com:17468'
     time.sleep(15)
     while 1:
-        redis_client = redis.from_url(redis_uri, decode_responses=True)
-        task = redis_client.rpop('taskQueue')
-        redis_client.close()
-
-        if not task:
-            continue
-        task = json.loads(task)
         try:
+            redis_client = redis.from_url(redis_uri, decode_responses=True)
+            task = redis_client.rpop('taskQueue')
+            redis_client.close()
+
+            if not task:
+                continue
+            task = json.loads(task)
 
             supabase.table("Tasks").update({
                 "status": "processing",
