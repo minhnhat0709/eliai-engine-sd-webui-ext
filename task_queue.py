@@ -18,6 +18,7 @@ def YourLedRoutine(text2imgapi):
     redis_uri = 'rediss://default:AVNS_p5SxXC8sjRJE8JkNqB9@task-queue-minhnhatdo0709-a715.a.aivencloud.com:17468'
     time.sleep(15)
     while 1:
+        task = None
         try:
             redis_client = redis.from_url(redis_uri, decode_responses=True)
             task = redis_client.rpop('taskQueue')
@@ -72,10 +73,11 @@ def YourLedRoutine(text2imgapi):
                 requests.post(f'http://127.0.0.1:{cmd_opts.port}/eliai_engine/extra-single-image', json=task)
         except Exception as e:
             print(e)
-            supabase.table("Tasks").update({
-                "status": "failed",
-                "finished_at": datetime.datetime.utcnow().isoformat()
-            }).eq("task_id", task['task_id']).execute()
+            if task:
+                supabase.table("Tasks").update({
+                    "status": "failed",
+                    "finished_at": datetime.datetime.utcnow().isoformat()
+                }).eq("task_id", task['task_id']).execute()
             continue
         time.sleep(1)
 
