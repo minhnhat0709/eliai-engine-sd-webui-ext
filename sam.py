@@ -65,8 +65,8 @@ class torch_default_load_cd(ContextDecorator):
 def image_predictions(image_base64):
   sam_models_dir = os.path.join(models_path, "SAM")
 
-  checkpoint = f"{sam_models_dir}/mobile_sam(vit_t).pt"
-  model_type = "vit_t"
+  checkpoint = f"{sam_models_dir}/sam_vit_h_4b8939.pth"
+  model_type = "vit_h"
 
   # with torch_default_load_cd():
   sam = sam_model_registry[model_type](checkpoint=checkpoint)
