@@ -51,7 +51,10 @@ def download_file_with_storage_management(url, file_name, storage_folder, max_me
 
               print(f"oldest_file_path {oldest_file_path}")
               del metadata[oldest_url]
-              os.remove(oldest_file_path)
+              try:
+                os.remove(oldest_file_path)
+              except:
+                pass
     
     # Save the updated metadata
     with open(json_file_path, 'w') as json_file:
