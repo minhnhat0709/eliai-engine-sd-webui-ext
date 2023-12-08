@@ -93,7 +93,7 @@ def runQueue(text2imgapi):
     #Background thread will finish with the main program
     t1.daemon = True
     #Start YourLedRoutine() in a separate thread
-    # t1.start()
+    t1.start()
 
 
 
