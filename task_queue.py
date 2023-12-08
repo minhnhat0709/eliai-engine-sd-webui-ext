@@ -11,15 +11,21 @@ import requests
 import base64
 
 from supabase_client import supabase
+import os
 
+machine_id = os.environ.get('MACHINE_ID')
 
 #Routine that processes whatever you want as background
 def YourLedRoutine(text2imgapi):
     redis_uri = 'rediss://default:AVNS_p5SxXC8sjRJE8JkNqB9@task-queue-minhnhatdo0709-a715.a.aivencloud.com:17468'
-    time.sleep(15)
+    time.sleep(30)
     while 1:
         task = None
         try:
+            machine_status = supabase.table("Nodes").select("*").eq("machine_id", machine_id).execute()
+            if machine_status.get('status', '') == 'shutdown':
+                break
+
             redis_client = redis.from_url(redis_uri, decode_responses=True)
             task = redis_client.rpop('taskQueue')
             redis_client.close()
@@ -87,7 +93,7 @@ def runQueue(text2imgapi):
     #Background thread will finish with the main program
     t1.daemon = True
     #Start YourLedRoutine() in a separate thread
-    t1.start()
+    # t1.start()
 
 
 
