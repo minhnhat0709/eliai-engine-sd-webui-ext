@@ -13,7 +13,6 @@ import base64
 from supabase_client import supabase
 import os
 
-machine_id = os.environ.get('MACHINE_ID')
 
 #Routine that processes whatever you want as background
 def YourLedRoutine(text2imgapi):
@@ -22,9 +21,6 @@ def YourLedRoutine(text2imgapi):
     while 1:
         task = None
         try:
-            machine_status = supabase.table("Nodes").select("*").eq("machine_id", machine_id).execute()
-            if machine_status.get('status', '') == 'shutdown':
-                break
 
             redis_client = redis.from_url(redis_uri, decode_responses=True)
             task = redis_client.rpop('taskQueue')
