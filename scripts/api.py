@@ -5,7 +5,7 @@ import asyncio
 import os
 from typing import List
 
-from supabase import Client, create_client
+from supabase_client import supabase
 import boto3
 
 from automapper import mapper
@@ -26,9 +26,9 @@ from modules import scripts
 from modules.api.api import Api
 from modules.call_queue import queue_lock
 
-from scripts.models import EliAIEngineSAMPredictorAPI, EliAIEngineTxt2ImgProcessingAPI, EliAIEngineImg2ImgProcessingAPI
+from scripts.models import EliAIEngineSAMPredictorAPI, EliAIEngineTxt2ImgProcessingAPI, EliAIEngineImg2ImgProcessingAPI, EliAIEngineExtraAPI
 from outside_lora_process import load_loras
-
+from task_queue import runQueue
 from sam import image_predictions
 
 import base64
@@ -82,9 +82,7 @@ def s3Storage_base64_upload(base64_image: str, task_id: str, index: int):
 
     return server_domain + object_key
 
-url: str = os.environ.get('SUPABASE_ENDPOINT') or "http://localhost:54321"
-key: str = os.environ.get('SUPABASE_KEY') or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
-supabase: Client = create_client(url, key)
+
 
 def image_uploading(images: List[str], seed:int, task_id:   str, user_id: str):
     # time.sleep(10)
@@ -116,8 +114,11 @@ def image_uploading(images: List[str], seed:int, task_id:   str, user_id: str):
 
 def eliai_engine_api(_: gr.Blocks, app: FastAPI):
     api = Api(app, queue_lock)
-
     
+    @app.get("/ping", status_code=200)
+    def ping():
+        return
+
     @app.post("/eliai_engine/img_sam_prediction")
     def sam_prediction(samreq: EliAIEngineSAMPredictorAPI, user_id: str):
       image_base64 = samreq.image_base64 or ""
@@ -134,20 +135,16 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
        
 
     @app.post("/eliai_engine/txt2img", status_code=204)
-    def text2imgapi(txt2imgreq: EliAIEngineTxt2ImgProcessingAPI, task_id: str, user_id: str):
-        # task_id = txt2imgreq.task_id
-        
-        loras = txt2imgreq.loras
-        
+    def text2imgapi(txt2imgreq: EliAIEngineTxt2ImgProcessingAPI):
 
-        print(f"Tassk ID: {task_id}")   
         try:
+          loras = txt2imgreq.loras
           load_loras(loras)
           req = mapper.to(StableDiffusionTxt2ImgProcessingAPI).map(txt2imgreq)
           # return
           result = api.text2imgapi(req)
 
-          controlnet_args = req.alwayson_scripts.get('controlNet', {}).get('args', {})
+          controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', {})
           controlnet_lenght = len(controlnet_args)
 
           if controlnet_lenght & controlnet_lenght > 0 :
@@ -161,7 +158,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           # background_tasks.add_task(image_uploading, images, task_id, user_id)
 
           # Create a new thread to run the background task
-          background_thread = threading.Thread(target=image_uploading, args=(images, seed, task_id, user_id))
+          background_thread = threading.Thread(target=image_uploading, args=(images, seed, txt2imgreq.task_id, txt2imgreq.user_id))
           background_thread.start()
 
         except Exception as e:
@@ -169,25 +166,24 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           supabase.table("Tasks").update({
               "status": "failed",
               "finished_at": datetime.datetime.utcnow().isoformat()
-          }).eq("task_id", task_id).execute()
+          }).eq("task_id", txt2imgreq.task_id).execute()
 
           raise HTTPException(status_code=400, detail="Request failed") 
 
         return
     
     @app.post("/eliai_engine/img2img", status_code=204)
-    def text2imgapi(txt2imgreq: EliAIEngineImg2ImgProcessingAPI, task_id: str, user_id: str, background_tasks: BackgroundTasks):
-        # task_id = txt2imgreq.task_id
-        loras = txt2imgreq.loras
-        print(f"Tassk ID: {task_id}")   
+    def img2imgapi(img2imgreq: EliAIEngineImg2ImgProcessingAPI):
+         
 
         try:
+          loras = img2imgreq.loras  
           load_loras(loras)
-          req = mapper.to(StableDiffusionImg2ImgProcessingAPI).map(txt2imgreq)
+          req = mapper.to(StableDiffusionImg2ImgProcessingAPI).map(img2imgreq)
 
           result = api.img2imgapi(req)
 
-          controlnet_args = req.alwayson_scripts.get('controlNet', {}).get('args', {})
+          controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', {})
           controlnet_lenght = len(controlnet_args)
 
           if controlnet_lenght & controlnet_lenght > 0 :
@@ -198,44 +194,46 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           info = json.loads(result.info)
           seed = info.get('seed')
           # Create a new thread to run the background task
-          background_thread = threading.Thread(target=image_uploading, args=(images, seed, task_id, user_id))
+          background_thread = threading.Thread(target=image_uploading, args=(images, seed, img2imgreq.task_id, img2imgreq.user_id))
           background_thread.start()
 
-        except:
+        except Exception as e:
+          print(e)
           supabase.table("Tasks").update({
               "status": "failed",
               "finished_at": datetime.datetime.utcnow().isoformat()
-          }).eq("task_id", task_id).execute()
+          }).eq("task_id", img2imgreq.task_id).execute()
           
           raise HTTPException(status_code=400, detail="Request failed") 
 
         return 
     
     @app.post("/eliai_engine/extra-single-image", status_code=204)
-    def text2imgapi(extraReq: ExtrasSingleImageRequest, task_id: str, user_id: str, background_tasks: BackgroundTasks):
-        # task_id = txt2imgreq.task_id
+    def extra(extraReq: EliAIEngineExtraAPI):
 
-        print(f"Tassk ID: {task_id}")   
+        print(f"Tassk ID: {extraReq.task_id}")   
 
         try:
-          result = api.extras_single_image_api(extraReq)
+          req = mapper.to(ExtrasSingleImageRequest).map(extraReq)
+          result = api.extras_single_image_api(req)
           images = [result.image]
           
 
           # Create a new thread to run the background task
-          background_thread = threading.Thread(target=image_uploading, args=(images,1 , task_id, user_id))
+          background_thread = threading.Thread(target=image_uploading, args=(images,1 , extraReq.task_id, extraReq.user_id))
           background_thread.start()
 
         except:
           supabase.table("Tasks").update({
               "status": "failed",
               "finished_at": datetime.datetime.utcnow().isoformat()
-          }).eq("task_id", task_id).execute()
+          }).eq("task_id", extraReq.task_id).execute()
           
           raise HTTPException(status_code=400, detail="Request failed") 
 
         return 
 
+    runQueue(text2imgapi)
 
 
 
