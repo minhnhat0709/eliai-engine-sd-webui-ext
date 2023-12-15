@@ -233,7 +233,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
 
         return 
 
-    # runQueue(text2imgapi)
+    runQueue(text2imgapi)
 
 
 
