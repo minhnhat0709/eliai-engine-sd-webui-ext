@@ -29,7 +29,7 @@ from modules.call_queue import queue_lock
 from scripts.models import EliAIEngineSAMPredictorAPI, EliAIEngineTxt2ImgProcessingAPI, EliAIEngineImg2ImgProcessingAPI, EliAIEngineExtraAPI
 from outside_lora_process import load_loras
 from task_queue import runQueue
-from sam import image_predictions
+# from sam import image_predictions
 
 import base64
 import io
@@ -119,19 +119,19 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
     def ping():
         return
 
-    @app.post("/eliai_engine/img_sam_prediction")
-    def sam_prediction(samreq: EliAIEngineSAMPredictorAPI, user_id: str):
-      image_base64 = samreq.image_base64 or ""
+    # @app.post("/eliai_engine/img_sam_prediction")
+    # def sam_prediction(samreq: EliAIEngineSAMPredictorAPI, user_id: str):
+    #   image_base64 = samreq.image_base64 or ""
 
-      print(f"START")
-      # await asyncio.sleep(40)
-      result = image_predictions(image_base64)
-      # result = io.BytesIO()
-      bytes = result.getvalue()
-      result.close()
+    #   print(f"START")
+    #   # await asyncio.sleep(40)
+    #   result = image_predictions(image_base64)
+    #   # result = io.BytesIO()
+    #   bytes = result.getvalue()
+    #   result.close()
 
-      print(f"END")
-      return Response(bytes)
+    #   print(f"END")
+    #   return Response(bytes)
        
 
     @app.post("/eliai_engine/txt2img", status_code=204)
