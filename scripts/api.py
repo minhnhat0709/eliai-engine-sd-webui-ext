@@ -92,8 +92,8 @@ def image_uploading(images: List[str], seed:int, task_id:   str, user_id: str):
         result.append(image_url)
         supabase.table("Images").insert({
             "image_url": image_url,
-            "is_shared": True,
-            "seed": seed + index,
+            "is_shared": False,
+            "seed": seed,
             "task_id": task_id,
             "user_id": user_id
         }).execute()
