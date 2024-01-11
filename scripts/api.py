@@ -22,6 +22,7 @@ import gradio as gr
 from modules.api.models import *
 from modules.api import api, models
 from modules import scripts
+from modules.shared import opts
 
 from modules.api.api import Api
 from modules.call_queue import queue_lock
@@ -114,6 +115,7 @@ def image_uploading(images: List[str], seed:int, task_id:   str, user_id: str):
 
 def eliai_engine_api(_: gr.Blocks, app: FastAPI):
     api = Api(app, queue_lock)
+    opts.samples_format = 'jpg'
     
     @app.get("/ping", status_code=200)
     def ping():
