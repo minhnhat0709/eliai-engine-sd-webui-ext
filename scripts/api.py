@@ -71,7 +71,7 @@ server_domain = "https://eliai-server.hn.ss.bfcplatform.vn/"
 
 def s3Storage_base64_upload(base64_image: str, task_id: str, index: int):
     image_binary = base64.b64decode(base64_image)
-    object_key = f"images/{task_id}/{task_id}_{index}.png"
+    object_key = f"images/{task_id}/{task_id}_{index}.jpg"
 
     s3client.upload_fileobj(
       Fileobj=io.BytesIO(image_binary),
