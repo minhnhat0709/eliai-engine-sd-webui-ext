@@ -150,7 +150,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           result = api.text2imgapi(req)
 
           controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', [])
-          controlnet_lenght = len(filter(is_tile_controlnet, controlnet_args))
+          controlnet_lenght = len(list(filter(is_tile_controlnet, controlnet_args)))
 
           if controlnet_lenght & controlnet_lenght > 0 :
             images = result.images[:-controlnet_lenght]
@@ -189,7 +189,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           result = api.img2imgapi(req)
 
           controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', [])
-          controlnet_lenght = len(filter(is_tile_controlnet, controlnet_args))
+          controlnet_lenght = len(list(filter(is_tile_controlnet, controlnet_args)))
 
           if controlnet_lenght & controlnet_lenght > 0 :
             images = result.images[:-controlnet_lenght]
