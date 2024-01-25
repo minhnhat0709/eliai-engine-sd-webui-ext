@@ -113,8 +113,8 @@ def image_uploading(images: List[str], seed:int, task_id:   str, user_id: str):
     
 def is_tile_controlnet(args):
    if args.get("model", "") == "tile":
-      return True
-   return False
+      return False
+   return True
 
 def eliai_engine_api(_: gr.Blocks, app: FastAPI):
     api = Api(app, queue_lock)
