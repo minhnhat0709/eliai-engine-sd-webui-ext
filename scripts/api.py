@@ -112,7 +112,7 @@ def image_uploading(images: List[str], seed:int, task_id:   str, user_id: str):
         }).eq("task_id", task_id).execute()
     
 def is_tile_controlnet(args):
-   if args.model == "tile":
+   if args.get("model") == "tile":
       return True
    return False
 
