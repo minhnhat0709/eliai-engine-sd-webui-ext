@@ -111,7 +111,10 @@ def image_uploading(images: List[str], seed:int, task_id:   str, user_id: str):
             "finished_at": datetime.datetime.utcnow().isoformat()
         }).eq("task_id", task_id).execute()
     
-
+def is_tile_controlnet(args):
+   if args.model == "tile":
+      return True
+   return False
 
 def eliai_engine_api(_: gr.Blocks, app: FastAPI):
     api = Api(app, queue_lock)
@@ -146,8 +149,8 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
           # return
           result = api.text2imgapi(req)
 
-          controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', {})
-          controlnet_lenght = len(controlnet_args)
+          controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', [])
+          controlnet_lenght = len(filter(is_tile_controlnet, controlnet_args))
 
           if controlnet_lenght & controlnet_lenght > 0 :
             images = result.images[:-controlnet_lenght]
@@ -185,8 +188,8 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
 
           result = api.img2imgapi(req)
 
-          controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', {})
-          controlnet_lenght = len(controlnet_args)
+          controlnet_args = req.alwayson_scripts.get('controlnet', {}).get('args', [])
+          controlnet_lenght = len(filter(is_tile_controlnet, controlnet_args))
 
           if controlnet_lenght & controlnet_lenght > 0 :
             images = result.images[:-controlnet_lenght]
