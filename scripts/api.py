@@ -5,6 +5,8 @@ import asyncio
 import os
 from typing import List
 
+import requests
+
 from supabase_client import supabase
 import boto3
 
@@ -27,10 +29,13 @@ from modules.shared import opts
 from modules.api.api import Api
 from modules.call_queue import queue_lock
 
-from scripts.models import EliAIEngineSAMPredictorAPI, EliAIEngineTxt2ImgProcessingAPI, EliAIEngineImg2ImgProcessingAPI, EliAIEngineExtraAPI
+from scripts.models import EliAIEngineImageCaptionAPI, EliAIEngineSAMPredictorAPI, EliAIEngineTxt2ImgProcessingAPI, EliAIEngineImg2ImgProcessingAPI, EliAIEngineExtraAPI
 from outside_lora_process import load_loras
 from task_queue import runQueue
 from sam import image_predictions
+from blip import generate_captions
+
+from PIL import Image
 
 import base64
 import io
@@ -112,7 +117,7 @@ def image_uploading(images: List[str], seed:int, task_id:   str, user_id: str):
         }).eq("task_id", task_id).execute()
     
 def is_tile_controlnet(args):
-   if args.get("model", "") == "tile":
+   if "tile" in args.get("model", ""):
       return False
    return True
 
@@ -124,6 +129,18 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
     def ping():
         return
 
+    @app.post("/eliai_engine/image_caption")
+    def blip_caption(captionReq: EliAIEngineImageCaptionAPI):
+      response = requests.get(captionReq.image_url)
+
+      img = response.content
+
+      image_pil = Image.open(io.BytesIO(img))
+
+      captions = generate_captions(image_pil)
+
+      return captions
+    
     @app.post("/eliai_engine/img_sam_prediction")
     def sam_prediction(samreq: EliAIEngineSAMPredictorAPI, user_id: str):
       image_base64 = samreq.image_base64 or ""
@@ -238,7 +255,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
 
         return 
 
-    runQueue(text2imgapi)
+    # runQueue(text2imgapi)
 
 
 

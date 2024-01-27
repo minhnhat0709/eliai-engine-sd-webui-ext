@@ -44,3 +44,6 @@ class EliAIEngineExtraAPI(ExtrasSingleImageRequest):
 
 class EliAIEngineSAMPredictorAPI(BaseModel):
   image_base64: str
+
+class EliAIEngineImageCaptionAPI(BaseModel):
+  image_url: str

@@ -1,0 +1,9 @@
+transformers
+torch
+scipy
+open_clip_torch
+supabase
+boto3
+onnxruntime
+onnx
+redis
