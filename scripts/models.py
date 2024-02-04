@@ -47,3 +47,7 @@ class EliAIEngineSAMPredictorAPI(BaseModel):
 
 class EliAIEngineImageCaptionAPI(BaseModel):
   image_url: str
+
+class EliAIEngineDownloadLocalLoraAPI(BaseModel):
+  lora_url: str
+  file_name: str

@@ -13,7 +13,7 @@ import boto3
 from automapper import mapper
 
 import numpy as np
-from fastapi import FastAPI, Body, BackgroundTasks
+from fastapi import FastAPI, Body, BackgroundTasks, File, UploadFile
 from fastapi.exceptions import HTTPException
 from fastapi.responses import Response, JSONResponse
 from fastapi.concurrency import run_in_threadpool
@@ -24,12 +24,12 @@ import gradio as gr
 from modules.api.models import *
 from modules.api import api, models
 from modules import scripts
-from modules.shared import opts
+from modules.shared import opts, cmd_opts
 
 from modules.api.api import Api
 from modules.call_queue import queue_lock
 
-from scripts.models import EliAIEngineImageCaptionAPI, EliAIEngineSAMPredictorAPI, EliAIEngineTxt2ImgProcessingAPI, EliAIEngineImg2ImgProcessingAPI, EliAIEngineExtraAPI
+from scripts.models import EliAIEngineImageCaptionAPI, EliAIEngineSAMPredictorAPI, EliAIEngineDownloadLocalLoraAPI, EliAIEngineTxt2ImgProcessingAPI, EliAIEngineImg2ImgProcessingAPI, EliAIEngineExtraAPI
 from outside_lora_process import load_loras
 from task_queue import runQueue
 from sam import image_predictions
@@ -40,7 +40,10 @@ from PIL import Image
 import base64
 import io
 import json
+from pathlib import Path
 
+
+lora_dir = Path(cmd_opts.lora_dir).resolve()
 
 def save_base64_to_file(base64String, filename):
     # Decode the Base64 data
@@ -128,7 +131,17 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
     @app.get("/ping", status_code=200)
     def ping():
         return
+    @app.post("/upload-lora")
+    def upload(url: EliAIEngineDownloadLocalLoraAPI):
+        try:
+            response = requests.get(url.lora_url)
+            if response.status_code == 200:
+              with open(Path.joinpath(lora_dir, url.file_name), 'wb') as f:
+                  f.write(response.content)
+        except Exception:
+            return {"message": "There was an error uploading the file"}
 
+        return {"message": f"Successfully Download lora {url.file_name}"}
     @app.post("/eliai_engine/image_caption")
     def blip_caption(captionReq: EliAIEngineImageCaptionAPI):
       response = requests.get(captionReq.image_url)
