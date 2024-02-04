@@ -136,7 +136,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
         try:
             response = requests.get(url.lora_url)
             if response.status_code == 200:
-              with open(Path.joinpath(lora_dir, url.file_name), 'wb') as f:
+              with open(Path.joinpath(lora_dir, "Local", url.file_name), 'wb') as f:
                   f.write(response.content)
         except Exception:
             return {"message": "There was an error uploading the file"}
