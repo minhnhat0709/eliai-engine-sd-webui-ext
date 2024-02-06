@@ -72,11 +72,12 @@ def encode_np_to_base64(image):
     return api.encode_pil_to_base64(pil)
 
 
-s3client = boto3.client('s3', endpoint_url='https://hn.ss.bfcplatform.vn',
+s3client = boto3.client('s3', endpoint_url= os.environ.get('AWS_ENDPOINT') or 'https://hn.ss.bfcplatform.vn',
     aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID') or "1XHPESY0IXGEMWYKN6PL",
     aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY') or "Kl8vL45TnD9KmVBcn2siOj9tno6rOimIxZlITSr1")
-bucket_name = "eliai-server"
-server_domain = "https://eliai-server.hn.ss.bfcplatform.vn/"
+bucket_name = os.environ.get('BUCKET_NAME') or "eliai-server"
+server_domain = os.environ.get('STORAGE_DOMAIN') or "https://eliai-server.hn.ss.bfcplatform.vn/"
+
 
 def s3Storage_base64_upload(base64_image: str, task_id: str, index: int):
     image_binary = base64.b64decode(base64_image)
@@ -136,6 +137,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
         try:
             response = requests.get(url.lora_url)
             if response.status_code == 200:
+              print(Path.joinpath(lora_dir, "Local", url.file_name))
               with open(Path.joinpath(lora_dir, "Local", url.file_name), 'wb') as f:
                   f.write(response.content)
         except Exception:
@@ -268,7 +270,7 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
 
         return 
 
-    # runQueue(text2imgapi)
+    runQueue(text2imgapi)
 
 
 

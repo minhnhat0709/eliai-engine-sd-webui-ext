@@ -6,6 +6,8 @@ import torch
 import open_clip
 
 from huggingface_hub import hf_hub_download
+from modules.shared import cmd_opts
+
 
 torch.hub.download_url_to_file('http://images.cocodataset.org/val2017/000000039769.jpg', 'cats.jpg')
 torch.hub.download_url_to_file('https://huggingface.co/datasets/nielsr/textcaps-sample/resolve/main/stop_sign.png', 'stop_sign.png')
@@ -23,8 +25,12 @@ torch.hub.download_url_to_file('https://cdn.openai.com/dall-e-2/demos/text2im/as
 # blip_processor_base = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 # blip_model_base = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
-blip_processor_large = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-large")
-blip_model_large = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large")
+if cmd_opts.listen:
+  blip_processor_large = AutoProcessor.from_pretrained("Salesforce/blip-image-captioning-large")
+  blip_model_large = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large")
+else:
+  blip_processor_large: None
+  blip_model_large: None
 
 
 # blip2_processor = AutoProcessor.from_pretrained("Salesforce/blip2-opt-2.7b")
@@ -48,7 +54,11 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 # blip_model_base.to(device)
 # git_model_large_coco.to(device)
 # git_model_large_textcaps.to(device)
-blip_model_large.to(device)
+
+if cmd_opts.listen:
+  blip_model_large.to(device)
+
+
 # vitgpt_model.to(device)
 # coca_model.to(device)
 # blip2_model.to(device)
