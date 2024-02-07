@@ -270,7 +270,8 @@ def eliai_engine_api(_: gr.Blocks, app: FastAPI):
 
         return 
 
-    runQueue(text2imgapi)
+    if not cmd_opts.listen:
+      runQueue(text2imgapi)
 
 
 
